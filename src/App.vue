@@ -1,17 +1,34 @@
 <template>
   <div id="app">
     <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+    <h3>Hello there</h3>
+
+
+
   </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+import Parse from 'parse';
 
 export default {
   name: 'App',
   components: {
-    HelloWorld
+
+  },
+  created(){
+      this.fetchToDos();
+  },
+  methods: {
+    fetchToDos(){
+      let toDoQuery = new Parse.Query('ToDo');
+      toDoQuery.find().then((data)=>{
+        console.log("My todos", data);
+        data.forEach( (oneTodo) => {
+          console.log("Name: ", oneTodo.get('name'));
+        })
+      });
+    }
   }
 }
 </script>
