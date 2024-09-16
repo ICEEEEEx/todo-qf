@@ -1,5 +1,7 @@
 import Vue from 'vue'
 import App from './App.vue'
+import router from './router';
+
 
 Vue.config.productionTip = false
 
@@ -19,5 +21,6 @@ Parse.initialize(`${process.env.VUE_APP_PARSE_APP_ID}`, `${process.env.VUE_APP_P
 Parse.serverURL = `${process.env.VUE_APP_PARSE_URL}`;
 
 new Vue({
+  router,
   render: h => h(App),
 }).$mount('#app')

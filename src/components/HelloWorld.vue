@@ -1,42 +1,99 @@
 <template>
-  <div class="hello">
-    <h1>{{ msg }}</h1>
-    <p>
-      For a guide and recipes on how to configure / customize this project,<br>
-      check out the
-      <a href="https://cli.vuejs.org" target="_blank" rel="noopener">vue-cli documentation</a>.
-    </p>
-    <h3>Installed CLI Plugins</h3>
-    <ul>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-babel" target="_blank" rel="noopener">babel</a></li>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-eslint" target="_blank" rel="noopener">eslint</a></li>
-    </ul>
-    <h3>Essential Links</h3>
-    <ul>
-      <li><a href="https://vuejs.org" target="_blank" rel="noopener">Core Docs</a></li>
-      <li><a href="https://forum.vuejs.org" target="_blank" rel="noopener">Forum</a></li>
-      <li><a href="https://chat.vuejs.org" target="_blank" rel="noopener">Community Chat</a></li>
-      <li><a href="https://twitter.com/vuejs" target="_blank" rel="noopener">Twitter</a></li>
-      <li><a href="https://news.vuejs.org" target="_blank" rel="noopener">News</a></li>
-    </ul>
-    <h3>Ecosystem</h3>
-    <ul>
-      <li><a href="https://router.vuejs.org" target="_blank" rel="noopener">vue-router</a></li>
-      <li><a href="https://vuex.vuejs.org" target="_blank" rel="noopener">vuex</a></li>
-      <li><a href="https://github.com/vuejs/vue-devtools#vue-devtools" target="_blank" rel="noopener">vue-devtools</a></li>
-      <li><a href="https://vue-loader.vuejs.org" target="_blank" rel="noopener">vue-loader</a></li>
-      <li><a href="https://github.com/vuejs/awesome-vue" target="_blank" rel="noopener">awesome-vue</a></li>
-    </ul>
+  <div>
+    <h1>Main page</h1>
+    <b-button variant="primary" @click="logOutFunction">Log Out</b-button>
+
+
+    <div v-for="value in object" v-bind:key="value.id">
+      <!-- content -->
+    </div>
+
   </div>
 </template>
 
 <script>
+import Parse from "parse";
+import Vue from "vue";
+import Toast from "vue-toastification";
+import "vue-toastification/dist/index.css";
+
+//the time was spent doing research and debugging (aimlessly going in circles)
+//looked at vue documentation and tried a bunch of thing (I am probably blind since it is probably very obvious)
+
+// Tried to do something using v-for but failed miserably..., Thought that the issue might be the vue version (me using wrong documentation) but after checking it was all fine,... basically even the basic info is not being outputted trough the div (static)... ( and now as I am coming to the end of this reporting in my comment I remember that I haven't pushed the project to github in quite a long time and that it will be not well documented. oopsie.. :P)
+
+// new Vue({
+//   el: '#v-for-object',
+//   data: {
+//     object: {
+//       title: 'How to do lists in Vue',
+//       author: 'Jane Doe',
+//       publishedAt: '2016-04-10'
+//     }
+//   }
+// })
 export default {
   name: 'HelloWorld',
-  props: {
-    msg: String
-  }
+  components: {
+
+  },
+
+
+  created(){
+    this.isUserLoggedIn();
+    // this.fetchToDos();
+
+  },
+
+
+
+  methods: {
+    isUserLoggedIn(){
+      let curUser = Parse.User.current();
+      // console.log(curUser)
+      if(curUser && curUser.id) {
+        console.log("currently logged in")
+        this.fetchToDos(); // put fetchToDos() here so no leak..
+      }else{
+        this.$router.push({name: 'login'});
+      }
+    },
+    fetchToDos() {
+      let toDoQuery = new Parse.Query('ToDo');
+      toDoQuery.find().then((data) => {
+        console.log("My todos", data);
+        data.forEach((oneTodo) => {
+          console.log("Name: ", oneTodo.get('name'));
+        })
+      });
+
+    },
+
+
+    logOutFunction(){
+      debugger;
+      Parse.User.logOut().then( ()=>{
+        this.$router.push({name: 'login'});
+
+
+        //I haven't gotten the toasts to work properly.. Do it tmrw
+        Vue.use(Toast, {
+          transition: "Vue-Toastification__bounce",
+          maxToasts: 20,
+          newestOnTop: true //FIX THIS OHMYGOD!
+
+        });
+      }).catch((error)=> {
+        console.log("The error on logout is: ", error.message);
+      })
+
+    }
+  },
+
+
+
 }
+
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
