@@ -48,23 +48,13 @@ export default {
   },
 
   created(){
-    // this.fetchToDos();
     let curUser = Parse.User.current();
     if(curUser && curUser.id) {
       this.$router.push({name: 'home'});
     }
-    // this.loginFunction();
   },
+
   methods: {
-    // fetchToDos() {
-    //   let toDoQuery = new Parse.Query('ToDo');
-    //   toDoQuery.find().then((data) => {
-    //     console.log("My todos", data);
-    //     data.forEach((oneTodo) => {
-    //       console.log("Name: ", oneTodo.get('name'));
-    //     })
-    //   });
-    // },
     loginFunction(){
       // console.log(this.pass, this.username);
       Parse.User.logIn(this.username, this.pass).then( (responseData)=>{
@@ -86,17 +76,9 @@ export default {
       }).catch((error)=> {
         console.log("The error on login is: ", error.message);
       })
+    }
 
-    },
-    // },
-    // loginFunction(){
-    //   if (username === inputUsername && password === inputPassword){
-    //     window.location.href = "/#";
-    //   } else {
-    //     console.log("nothingÍ")
-    //   }
-    // }
-    //
+
 
   }
 }
