@@ -1,27 +1,52 @@
 <template>
   <div>
+
     <h1>Main page</h1>
-    <b-button variant="primary" @click="logOutFunction">Log Out</b-button>
-
-    <div>
-
-      <ul id="example-2">
-        <li v-for="(constructedItem) in items" :key="constructedItem.id">
+    <b-container>
+      <br>
+      <b-list-group>
+        <b-list-group-item v-for="(constructedItem) in uncompleted" :key="constructedItem.id">
 
             <b-form-checkbox
                 v-model="constructedItem.status"
                 name="check-button" switch
-
                 @change="updateToDo(constructedItem)"
             >
-              <span class="pl-2">{{constructedItem.name}}</span> <b>(Checked: {{ constructedItem.status }})</b>
+
+              <span class="pl-2">{{constructedItem.name}}</span>
+<!--              <b>(Checked: {{ constructedItem.status }})</b>-->
+
+            </b-form-checkbox>
+          </b-list-group-item>
+
+        <br>
+
+        <b-list-group-item v-for="(constructedItem) in completed" :key="constructedItem.id">
+
+          <b-form-checkbox
+              v-model="constructedItem.status"
+              name="check-button" switch
+              @change="updateToDo(constructedItem)"
+          >
+
+            <span class="pl-2">{{constructedItem.name}}</span>
+<!--            <b>(Checked: {{ constructedItem.status }})</b>-->
+
           </b-form-checkbox>
+        </b-list-group-item>
+
+      </b-list-group>
+      <b-button variant="success" @click="$router.push({name: 'todoCreator'});">Create new</b-button>
+      <br>
+      <b-button variant="outline-danger" @click="logOutFunction">Log Out</b-button>
 
 
 
-        </li>
-      </ul>
-    </div>
+
+
+    </b-container>
+
+
 
   </div>
 </template>
@@ -34,25 +59,18 @@ export default {
   components: {
 
   },
+
   data(){
     return {
-      // status: 'not_accepted',
-      parentMessage: 'Parent',
-      items: [
-        { message: 'Foo' },
-        { message: 'Bar' },
-
-      ]
-
+      completed: [],
+      uncompleted: [],
+      items: []
     }
   },
+
   created(){
     this.isUserLoggedIn();
-    // this.fetchToDos();
-
   },
-
-
 
   methods: {
     isUserLoggedIn(){
@@ -60,7 +78,7 @@ export default {
       // console.log(curUser)
       if(curUser && curUser.id) {
         console.log("currently logged in")
-        this.fetchToDos(); // put fetchToDos() here so no leak..
+        this.fetchToDos();
       }else{
         this.$router.push({name: 'login'});
       }
@@ -80,8 +98,13 @@ export default {
             id: todo.id,
             originalTodo: todo
           }
-
         });
+
+        this.completed = this.items.filter((oneToDo)=> oneToDo.status);
+        // console.log("completed: ", this.completed)
+
+        this.uncompleted = this.items.filter((oneToDo) => !oneToDo.status);
+        // console.log("uncompleted: ", this.uncompleted)
       });
 
     },
@@ -92,7 +115,7 @@ export default {
       constructedItem.originalTodo.set("status", constructedItem.status)
 
       constructedItem.originalTodo.save().then(() => {
-
+        this.fetchToDos();
         this.$toast("Updated successfully.",{
           position: "top-right",
           timeout: 2500,
