@@ -3,9 +3,24 @@
     <h1>Main page</h1>
     <b-button variant="primary" @click="logOutFunction">Log Out</b-button>
 
+    <div>
 
-    <div v-for="value in object" v-bind:key="value.id">
-      <!-- content -->
+      <ul id="example-2">
+        <li v-for="(constructedItem) in items" :key="constructedItem.id">
+
+            <b-form-checkbox
+                v-model="constructedItem.status"
+                name="check-button" switch
+
+                @change="updateToDo(constructedItem)"
+            >
+              <span class="pl-2">{{constructedItem.name}}</span> <b>(Checked: {{ constructedItem.status }})</b>
+          </b-form-checkbox>
+
+
+
+        </li>
+      </ul>
     </div>
 
   </div>
@@ -13,32 +28,24 @@
 
 <script>
 import Parse from "parse";
-import Vue from "vue";
-import Toast from "vue-toastification";
-import "vue-toastification/dist/index.css";
 
-//the time was spent doing research and debugging (aimlessly going in circles)
-//looked at vue documentation and tried a bunch of thing (I am probably blind since it is probably very obvious)
-
-// Tried to do something using v-for but failed miserably..., Thought that the issue might be the vue version (me using wrong documentation) but after checking it was all fine,... basically even the basic info is not being outputted trough the div (static)... ( and now as I am coming to the end of this reporting in my comment I remember that I haven't pushed the project to github in quite a long time and that it will be not well documented. oopsie.. :P)
-
-// new Vue({
-//   el: '#v-for-object',
-//   data: {
-//     object: {
-//       title: 'How to do lists in Vue',
-//       author: 'Jane Doe',
-//       publishedAt: '2016-04-10'
-//     }
-//   }
-// })
 export default {
   name: 'HelloWorld',
   components: {
 
   },
+  data(){
+    return {
+      // status: 'not_accepted',
+      parentMessage: 'Parent',
+      items: [
+        { message: 'Foo' },
+        { message: 'Bar' },
 
+      ]
 
+    }
+  },
   created(){
     this.isUserLoggedIn();
     // this.fetchToDos();
@@ -62,27 +69,63 @@ export default {
       let toDoQuery = new Parse.Query('ToDo');
       toDoQuery.find().then((data) => {
         console.log("My todos", data);
-        data.forEach((oneTodo) => {
-          console.log("Name: ", oneTodo.get('name'));
-        })
+        // this.items = data;
+
+        this.items = data.map((todo) =>  {
+          return  {
+            status: todo.get('status'),
+            name: todo.get('name'),
+            content: todo.get('content'),
+            dueDate: todo.get('dueDate'),
+            id: todo.id,
+            originalTodo: todo
+          }
+
+        });
       });
 
     },
 
+    updateToDo(constructedItem){
+      console.log(constructedItem);
+
+      constructedItem.originalTodo.set("status", constructedItem.status)
+
+      constructedItem.originalTodo.save().then(() => {
+
+        this.$toast("Updated successfully.",{
+          position: "top-right",
+          timeout: 2500,
+          closeOnClick: true,
+          pauseOnFocusLoss: true,
+          pauseOnHover: true,
+          draggable: true,
+          closeButton: "button",
+          icon: true,
+        });
+      })
+
+
+    },
 
     logOutFunction(){
-      debugger;
+
       Parse.User.logOut().then( ()=>{
         this.$router.push({name: 'login'});
 
-
-        //I haven't gotten the toasts to work properly.. Do it tmrw
-        Vue.use(Toast, {
-          transition: "Vue-Toastification__bounce",
-          maxToasts: 20,
-          newestOnTop: true //FIX THIS OHMYGOD!
-
+        // debugger;
+        //I haven't gotten the toasts to work properly. Do it tomorrow
+        this.$toast("Logged out successfully.",{
+          position: "top-right",
+          timeout: 2500,
+          closeOnClick: true,
+          pauseOnFocusLoss: true,
+          pauseOnHover: true,
+          draggable: true,
+          closeButton: "button",
+          icon: true,
         });
+
       }).catch((error)=> {
         console.log("The error on logout is: ", error.message);
       })
