@@ -69,6 +69,18 @@ export default {
       // console.log(this.pass, this.username);
       Parse.User.logIn(this.username, this.pass).then( (responseData)=>{
         console.log("Response data is: ", responseData);
+
+        this.$toast("Logged in!, ", {
+          position: "top-right",
+          timeout: 2500,
+          closeOnClick: true,
+          pauseOnFocusLoss: true,
+          pauseOnHover: true,
+          draggable: true,
+          closeButton: "button",
+          icon: true,
+        });
+
         this.$router.push({name: 'home'});
 
       }).catch((error)=> {
