@@ -16,6 +16,18 @@ Vue.use(BootstrapVue)
 // Optionally install the BootstrapVue icon components plugin
 Vue.use(IconsPlugin)
 
+
+//toastification
+import Toast from "vue-toastification";
+import "vue-toastification/dist/index.css";
+
+Vue.use(Toast, {
+  transition: "Vue-Toastification__bounce",
+  maxToasts: 20,
+  newestOnTop: true
+});
+
+
 const Parse = require('parse');
 Parse.initialize(`${process.env.VUE_APP_PARSE_APP_ID}`, `${process.env.VUE_APP_PARSE_SECRET}`);
 Parse.serverURL = `${process.env.VUE_APP_PARSE_URL}`;
