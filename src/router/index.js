@@ -33,11 +33,6 @@ const routes = [
         name: 'login',
         component: () => import('@/components/Login.vue'),
     },
-    {
-        path: '/todoCreator',
-        name: 'todoCreator',
-        component: () => import('@/components/CreateNewTodoPage.vue'),
-    },
 ];
 
 const router = new Router({
