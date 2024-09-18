@@ -20,14 +20,4 @@
   color: #2c3e50;
   margin-top: 60px;
 }
-.form-box{
-  margin: auto;
-  padding: 15px;
-  width: 80vw;
-
-  border-style: solid;
-  border-color: grey;
-  border-width: 1px;
-  border-radius: 5px;
-}
 </style>
