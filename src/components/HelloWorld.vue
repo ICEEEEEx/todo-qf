@@ -1,98 +1,119 @@
 <template>
-    <b-container >
-      <div class="row justify-content-evenly">
-        <h1>All of your tasks</h1>
+  <b-container>
+    <div class="row justify-content-evenly">
+      <h1>All of your tasks</h1>
 
-        <b-row class="mb-3 border-bottom pb-3">
-          <b-col>
+      <b-row class="mb-3 border-bottom pb-3">
+        <b-col>
+          <div class="d-flex justify-content-between">
+            <b-button variant="outline-success" @click="openCreateModal">Create a new ToDo</b-button>
 
-            <div class="d-flex justify-content-between">
-              <b-button variant="outline-success" v-b-modal.my-modal>Create a new ToDo</b-button>
-
-              <b-button variant="outline-danger" @click="logOutFunction">Log Out</b-button>
-            </div>
-
-          </b-col>
-        </b-row>
-
-        <b-row>
-          <!-- OPEN TASKS -->
-          <b-col>
-            <b-list-group >
-              <h3>Uncompleted Tasks</h3>
-              <b-list-group-item class="" v-for="(constructedItem) in uncompleted" :key="constructedItem.id">
-                <b-row>
-                  <b-col>
-                    <b-form-checkbox
-                        class=""
-                        v-model="constructedItem.status"
-                        name="check-button" switch
-                        @change="updateToDo(constructedItem)"
-                    ></b-form-checkbox>
-                  </b-col>
-                  <b-col>
-                    <span class="">{{constructedItem.name}}</span>
-                  </b-col>
-                  <b-col class="">
+            <b-button variant="outline-danger" @click="logOutFunction">Log Out</b-button>
+          </div>
+        </b-col>
+      </b-row>
+      <!--TASKS-->
+      <b-row>
+        <!-- OPEN TASKS -->
+        <b-col>
+          <b-list-group>
+            <h3>Uncompleted Tasks</h3>
+            <b-list-group-item class="" v-for="(constructedItem) in uncompleted" :key="constructedItem.id">
+              <b-row>
+                <b-col class="d-flex justify-content-start pl-2">
+                  <b-form-checkbox
+                      class=""
+                      v-model="constructedItem.status"
+                      name="check-button" switch
+                      @change="updateToDo(constructedItem)"
+                  ></b-form-checkbox>
+                </b-col>
+                <b-col>
+                  <span>{{ constructedItem.name }}</span>
+                </b-col>
+                <b-col class="d-flex justify-content-end">
+                  <a @click="openEditModal(constructedItem)">
                     <b-icon-pencil-square class=""></b-icon-pencil-square>
-                  </b-col>
-                </b-row>
-              </b-list-group-item>
-            </b-list-group>
-          </b-col>
-
-          <!-- Completed TASKS -->
-          <b-col>
-            <b-list-group>
-              <h3>Completed tasks</h3>
-              <b-list-group-item class="" v-for="(constructedItem) in completed" :key="constructedItem.id">
-                <b-row>
-                  <b-col>
-                    <b-form-checkbox
-                        class=""
-                        v-model="constructedItem.status"
-                        name="check-button" switch
-                        @change="updateToDo(constructedItem)"
-                    ></b-form-checkbox>
-                  </b-col>
-                  <b-col>
-                    <span class="">{{constructedItem.name}}</span>
-                  </b-col>
-                  <b-col class="">
+                  </a>
+                  <a @click="openDeleteModal(constructedItem.originalTodo)">
+                    <b-icon-trash class="pl-1 pr-2"></b-icon-trash>
+                  </a>
+                </b-col>
+              </b-row>
+            </b-list-group-item>
+          </b-list-group>
+        </b-col>
+        <!-- Completed TASKS -->
+        <b-col>
+          <b-list-group>
+            <h3>Completed tasks</h3>
+            <b-list-group-item v-for="(constructedItem) in completed" :key="constructedItem.id">
+              <b-row>
+                <b-col class="d-flex justify-content-start pl-2">
+                  <b-form-checkbox
+                      class=""
+                      v-model="constructedItem.status"
+                      name="check-button" switch
+                      @change="updateToDo(constructedItem)"
+                  ></b-form-checkbox>
+                </b-col>
+                <b-col>
+                  <span>{{ constructedItem.name }}</span>
+                </b-col>
+                <b-col class="d-flex justify-content-end">
+                  <a @click="openEditModal(constructedItem)">
                     <b-icon-pencil-square class=""></b-icon-pencil-square>
-                  </b-col>
-                </b-row>
-              </b-list-group-item>
-            </b-list-group>
-          </b-col>
-        </b-row>
+                  </a>
+                  <a @click="openDeleteModal(constructedItem.originalTodo)">
+                    <b-icon-trash class="pl-1 pr-2"></b-icon-trash>
+                  </a>
+                </b-col>
+              </b-row>
+            </b-list-group-item>
+          </b-list-group>
+        </b-col>
+      </b-row>
+    </div>
+    <!--      START OF MODAL EDIT-CREATE TASK-->
+    <b-modal
+        centered
+        hide-header
+        id="edit-create-modal"
+        :ok-title="this.modalSuccessButtonText"
+        :cancel-variant="'danger'"
+        @ok="saveToDo"
+        @cancel="clearToDoInfo"
+    >
+      <b-form-group label="Tittle" class="mb-3">
+        <b-form-input v-model="editObjectName" placeholder="Task tittle goes here"></b-form-input>
+      </b-form-group>
 
-  <!--start of modal-->
+      <b-form-group label="Content" class="mb-3">
+        <b-form-input v-model="editObjectContent" placeholder="Task content goes here"></b-form-input>
+      </b-form-group>
 
-
-  <!--end of modal (pop-up)-->
-      </div>
-      <b-modal
-          id="my-modal"
-          :ok-title="`Create tasks`"
-          @ok="createNewToDo"
-      >
-        <b-form-group label="Tittle" class="mb-3">
-          <b-form-input v-model="newToDo.newTittle" placeholder="Task tittle goes here"></b-form-input>
-        </b-form-group>
-
-        <b-form-group label="Content"  class="mb-3">
-          <b-form-input v-model="newToDo.newContent" placeholder="Task content goes here"></b-form-input>
-        </b-form-group>
-
-        <b-form-group>
-          <b-form-checkbox v-model="newToDo.newStatus">
-            <span class="pl-2">Check this if the task is done</span>
-          </b-form-checkbox>
-        </b-form-group>
-
-      </b-modal>
-    </b-container>
+      <b-form-group>
+        <b-form-checkbox v-model="editObjectStatus">
+          <span class="pl-2">Check this if the task is done</span>
+        </b-form-checkbox>
+      </b-form-group>
+    </b-modal>
+    <!--      END OF MODAL EDIT-CREATE TASK      -->
+    <!--      START OF MODAL DELETE TASK     -->
+    <b-modal
+        centered
+        hide-header
+        id="delete-todo-modal"
+        :ok-title="`Delete`"
+        :ok-variant="'danger'"
+        @ok="deleteToDoPermanently()"
+        size="sm"
+        :cancel-variant="'success'"
+    >
+      <h4>Are you sure you want to delete this task?</h4>
+    </b-modal>
+    <!--END OF MODAL DELETE TASK-->
+  </b-container>
 
 </template>
 
@@ -101,56 +122,53 @@ import Parse from "parse";
 
 export default {
   name: 'HelloWorld',
-  components: {
+  components: {},
 
-  },
-
-  data(){
+  data() {
     return {
       completed: [],
       uncompleted: [],
-      items: []
+      items: [],
+      itemToDelete: null,
+      editObjectName: '',
+      editObjectContent: '',
+      editObjectStatus: false,
+
+      modalSuccessButtonText: 'Create Task',
     }
   },
 
-  created(){
+  created() {
     this.isUserLoggedIn();
   },
-  computed:{
-    curUserId(){
+
+  computed: {
+    curUserId() {
       let curUser = Parse.User.current();
       return curUser ? curUser.id : null;
     }
-
   },
   methods: {
-    isUserLoggedIn(){
+    isUserLoggedIn() {
       let curUser = Parse.User.current();
-      // console.log(curUser)
-      if(curUser && curUser.id) {
+      if (curUser && curUser.id) {
         console.log("currently logged in")
         this.fetchToDos();
-      }else{
+      } else {
         this.$router.push({name: 'login'});
       }
     },
     fetchToDos() {
       let toDoQuery = new Parse.Query('ToDo');
-
-      // console.log(this.curUserId);
-
-      let userPointer = {"__type": "Pointer", className:'_User', objectId:this.curUserId, }
+      let userPointer = {"__type": "Pointer", className: '_User', objectId: this.curUserId,}
 
       toDoQuery.equalTo('owner', userPointer);
-      //
       toDoQuery.descending('createdAt');
 
       toDoQuery.find().then((data) => {
         console.log("My todos", data);
-        // this.items = data;
-
-        this.items = data.map((todo) =>  {
-          return  {
+        this.items = data.map((todo) => {
+          return {
             status: todo.get('status'),
             name: todo.get('name'),
             content: todo.get('content'),
@@ -159,134 +177,111 @@ export default {
             originalTodo: todo
           }
         });
-
-        this.completed = this.items.filter((oneToDo)=> oneToDo.status);
-        // console.log("completed: ", this.completed)
-
+        this.completed = this.items.filter((oneToDo) => oneToDo.status);
         this.uncompleted = this.items.filter((oneToDo) => !oneToDo.status);
-        // console.log("uncompleted: ", this.uncompleted)
       });
-
     },
 
-    updateToDo(constructedItem){
-      console.log(constructedItem);
+    updateToDo(constructedItem) {
       constructedItem.originalTodo.set("status", constructedItem.status)
-
       constructedItem.originalTodo.save().then(() => {
         this.fetchToDos();
-        this.$toast("Updated successfully.",{
+        this.$toast("Updated successfully.", {
           position: "top-right",
           timeout: 1500,
-          closeOnClick: true,
-          pauseOnFocusLoss: true,
-          pauseOnHover: true,
-          draggable: true,
-          closeButton: "button",
-          icon: true,
         });
       })
     },
 
+    openCreateModal(){
+      this.clearToDoInfo()
 
-    newToDo: [],
-    createNewToDo() {
+      this.$bvModal.show("edit-create-modal")
+    },
+    saveToDo() {
 
-      // Step 1: Create a new Parse object for the "to do"
       const ToDo = Parse.Object.extend('ToDo');
       const newTask = new ToDo();
 
-      let userPointer = {"__type": "Pointer", className:'_User', objectId:this.curUserId, }
+      if (this.editObjectId) {
+        newTask.set("id", this.editObjectId); //WHAT IS DIS
+        this.modalSuccessButtonText = "Edit task"
 
-      newTask.set("name", this.newToDo.newTittle);
-      newTask.set("status", this.newToDo.newStatus);
-      newTask.set("content", this.newToDo.newContent);
+      }
+
+      let userPointer = {"__type": "Pointer", className: '_User', objectId: this.curUserId,}
+      newTask.set("name", this.editObjectName);
+      newTask.set("content", this.editObjectContent);
+      newTask.set("status", this.editObjectStatus);
       newTask.set("owner", userPointer);
-      //figure out how to get user id to automatically put it in to the table
-      // console.log(Parse.User.current)
-
-      //figure out how to put date in to table
-      // console.log(this.dueDate)
-      // newTask.set("dueDate", this.dueDate);
 
       newTask.save().then(
           (response) => {
             console.log("Task saved successfully!", response);
-            this.newToDo.newTittle = '';
-            this.newToDo.newStatus = false;
-            this.newToDo.newContent = '';
+            this.editObjectName = '';
+            this.editObjectContent = '';
+            this.editObjectStatus = false;
+            this.editObjectId = null; //!!!
 
             this.fetchToDos();
-            this.$bvModal.hide('my-modal');
+            this.$bvModal.hide('edit-create-modal');
 
             this.$toast.success("New task created successfully", {
               position: "top-right",
               timeout: 2500,
-              closeOnClick: true,
-              pauseOnFocusLoss: true,
-              pauseOnHover: true,
-              draggable: true,
-              closeButton: "button",
-              icon: true,
             });
-
-
-          },
-          (error) => {
-            this.$toast.error("Error while creating task", {
-              position: "top-right",
-              timeout: 2500,
-              closeOnClick: true,
-              pauseOnFocusLoss: true,
-              pauseOnHover: true,
-              draggable: true,
-              draggablePercent: 0.6,
-              showCloseButtonOnHover: false,
-              hideProgressBar: true,
-              closeButton: "button",
-              icon: true,
-              rtl: false
-            });
-
-            console.error("Error while saving task", error);
-          }
-      );
-    },
-
-    logOutFunction(){
-
-      Parse.User.logOut().then( ()=>{
-        this.$router.push({name: 'login'});
-
-        // debugger;
-        //I haven't gotten the toasts to work properly. Do it tomorrow
-        this.$toast("Logged out successfully.",{
+          }).catch((error) => {
+        this.$toast.error("Error while creating task", {
           position: "top-right",
           timeout: 2500,
-          closeOnClick: true,
-          pauseOnFocusLoss: true,
-          pauseOnHover: true,
-          draggable: true,
-          closeButton: "button",
-          icon: true,
+        });
+        console.error("Error while saving task", error);
+      });
+    },
+    clearToDoInfo(){
+      this.editObjectName = '';
+      this.editObjectContent = '';
+      this.editObjectStatus = false;
+      this.editObjectId = null; //!!!
+    },
+
+    openEditModal(item) {
+      this.editObjectName = item.name;
+      this.editObjectContent = item.content;
+      this.editObjectStatus = item.status;
+      this.editObjectId = item.originalTodo.id;
+
+      this.$bvModal.show('edit-create-modal');
+    },
+    openDeleteModal(original) {
+      this.itemToDelete = original
+      this.$bvModal.show("delete-todo-modal");
+
+    },
+
+    deleteToDoPermanently() {
+      this.itemToDelete.destroy().then(() => {
+        this.fetchToDos();
+        this.$toast("Task deleted successfully.", {
+          position: "top-right",
+          timeout: 2500,
+        });
+      });
+    },
+
+    logOutFunction() {
+      Parse.User.logOut().then(() => {
+        this.$router.push({name: 'login'});
+        this.$toast("Logged out.", {
+          position: "top-right",
+          timeout: 2500,
         });
 
-      }).catch((error)=> {
+      }).catch((error) => {
         console.log("The error on logout is: ", error.message);
       })
-
     }
   },
 
-
-
 }
-
 </script>
-
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style>
-a {
-  color: #42b983;
-}
-</style>
