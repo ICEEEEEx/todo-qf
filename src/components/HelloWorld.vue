@@ -31,13 +31,17 @@
                 <b-col>
                   <span>{{ constructedItem.name }}</span>
                 </b-col>
+
                 <b-col class="d-flex justify-content-end">
-                  <a @click="openEditModal(constructedItem)">
+                  <b-link v-if="constructedItem.originalTodo.attributes.attachment" :href="constructedItem.originalTodo.attributes.attachment._url">
+                    <b-icon-link45deg class="pl-1 pr-2"></b-icon-link45deg>
+                  </b-link>
+                  <b-link @click="openEditModal(constructedItem)">
                     <b-icon-pencil-square class=""></b-icon-pencil-square>
-                  </a>
-                  <a @click="openDeleteModal(constructedItem.originalTodo)">
+                  </b-link>
+                  <b-link @click="openDeleteModal(constructedItem.originalTodo)">
                     <b-icon-trash class="pl-1 pr-2"></b-icon-trash>
-                  </a>
+                  </b-link>
                 </b-col>
               </b-row>
             </b-list-group-item>
@@ -61,12 +65,17 @@
                   <span>{{ constructedItem.name }}</span>
                 </b-col>
                 <b-col class="d-flex justify-content-end">
-                  <a @click="openEditModal(constructedItem)">
+
+                  <b-link v-if="constructedItem.originalTodo.attributes.attachment" :href="constructedItem.originalTodo.attributes.attachment._url">
+                    <b-icon-link45deg class="pl-1 pr-2"></b-icon-link45deg>
+                  </b-link>
+                  <b-link @click="openEditModal(constructedItem)">
                     <b-icon-pencil-square class=""></b-icon-pencil-square>
-                  </a>
-                  <a @click="openDeleteModal(constructedItem.originalTodo)">
+                  </b-link>
+                  <b-link @click="openDeleteModal(constructedItem.originalTodo)">
                     <b-icon-trash class="pl-1 pr-2"></b-icon-trash>
-                  </a>
+                  </b-link>
+
                 </b-col>
               </b-row>
             </b-list-group-item>
@@ -93,13 +102,33 @@
       </b-form-group>
 
       <b-form-group>
+<!--        <div v-if="this.editObjectAttachment.attachment">-->
+        <div v-if="editObjectAttachment">
+
+<!--          MAKE FILE MANAGEMENT HERE-->
+          <b-link>
+            <b-icon-trash class="pl-1 pr-2"></b-icon-trash>
+          </b-link>
+          <b-link>
+            <b-icon-pencil-square class=""></b-icon-pencil-square>
+          </b-link>
+
+        </div>
+       <div v-else>
+         <label for="formFileSm" class="form-label">input file here</label>
+         <input class="form-control form-control-sm" id="formFileSm" type="file" ref="file" @change="readFile()">
+       </div>
+<!--          -------->
+      </b-form-group>
+
+      <b-form-group>
         <b-form-checkbox v-model="editObjectStatus">
           <span class="pl-2">Check this if the task is done</span>
         </b-form-checkbox>
       </b-form-group>
     </b-modal>
-    <!--      END OF MODAL EDIT-CREATE TASK      -->
-    <!--      START OF MODAL DELETE TASK     -->
+    <!--      END OF MODAL EDIT-CREATE TASK       -->
+    <!--      START OF MODAL DELETE TASK          -->
     <b-modal
         centered
         hide-header
@@ -112,7 +141,7 @@
     >
       <h4>Are you sure you want to delete this task?</h4>
     </b-modal>
-    <!--END OF MODAL DELETE TASK-->
+    <!--      END OF MODAL DELETE TASK            -->
   </b-container>
 
 </template>
@@ -134,7 +163,11 @@ export default {
       editObjectContent: '',
       editObjectStatus: false,
 
-      modalSuccessButtonText: 'Create Task',
+      editObjectAttachment: null,
+
+      modalSuccessButtonText: '',
+
+      file: null,
     }
   },
 
@@ -173,9 +206,11 @@ export default {
             name: todo.get('name'),
             content: todo.get('content'),
             dueDate: todo.get('dueDate'),
+            attachment: todo.get('attachment'),
+
             id: todo.id,
             originalTodo: todo
-          }
+          }//figure out how to get file info from object and DO THE INTERFACE AT LEAST... <3
         });
         this.completed = this.items.filter((oneToDo) => oneToDo.status);
         this.uncompleted = this.items.filter((oneToDo) => !oneToDo.status);
@@ -197,7 +232,23 @@ export default {
       this.clearToDoInfo()
 
       this.$bvModal.show("edit-create-modal")
+      this.modalSuccessButtonText = "Create Task"
     },
+    openEditModal(item) {
+      this.editObjectName = item.name;
+      this.editObjectContent = item.content;
+      this.editObjectStatus = item.status;
+      this.editObjectId = item.originalTodo.id;
+      this.editObjectAttachment = item.originalTodo.attachment;
+
+      this.$bvModal.show('edit-create-modal');
+      this.modalSuccessButtonText = "Edit Task"
+    },
+    openDeleteModal(original) {
+      this.itemToDelete = original
+      this.$bvModal.show("delete-todo-modal");
+    },
+
     saveToDo() {
 
       const ToDo = Parse.Object.extend('ToDo');
@@ -205,14 +256,14 @@ export default {
 
       if (this.editObjectId) {
         newTask.set("id", this.editObjectId); //WHAT IS DIS
-        this.modalSuccessButtonText = "Edit task"
-
       }
 
+      // constructedItem.originalTodo.attributes.attachment
       let userPointer = {"__type": "Pointer", className: '_User', objectId: this.curUserId,}
       newTask.set("name", this.editObjectName);
       newTask.set("content", this.editObjectContent);
       newTask.set("status", this.editObjectStatus);
+      // newTask.set("attachment", )
       newTask.set("owner", userPointer);
 
       newTask.save().then(
@@ -243,20 +294,8 @@ export default {
       this.editObjectContent = '';
       this.editObjectStatus = false;
       this.editObjectId = null; //!!!
-    },
 
-    openEditModal(item) {
-      this.editObjectName = item.name;
-      this.editObjectContent = item.content;
-      this.editObjectStatus = item.status;
-      this.editObjectId = item.originalTodo.id;
-
-      this.$bvModal.show('edit-create-modal');
-    },
-    openDeleteModal(original) {
-      this.itemToDelete = original
-      this.$bvModal.show("delete-todo-modal");
-
+      // this.
     },
 
     deleteToDoPermanently() {
