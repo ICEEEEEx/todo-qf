@@ -2,33 +2,36 @@
   <div>
     <h1>Hello from Login</h1>
 
+    <b-container class="w-25">
+          <b-form>
+
+            <b-form-group label="Username" class="mb-1">
+              <b-form-input
+                  id="input-username"
+                  placeholder="'Joe'"
+                  v-model="username"
+              ></b-form-input>
+            </b-form-group>
 
 
-    <div class="form-box">
-      <b-form inline>
+            <b-form-group label="Password" class="mb-1">
+              <b-form-input
+                  type="password"
+                  id="input-password"
 
-        <b-form-group label="Your username">
-          <b-form-input
-              id="input-username"
-              class="mb-2 mr-sm-2 mb-sm-0"
-              placeholder="'Joe'"
-              v-model="username"
-          ></b-form-input>
-        </b-form-group>
+                  placeholder="Password"
+                  v-model="pass"
+              ></b-form-input>
 
 
-        <b-form-group label="Password">
-          <b-form-input
-              type="password" id="input-password" placeholder="Password"
-              v-model="pass"
-          ></b-form-input>
-        </b-form-group>
+            </b-form-group>
 
-        <b-form-checkbox class="mb-2 mr-sm-2 mb-sm-0">Remember me</b-form-checkbox>
+            <b-form-checkbox class="mb-2">Remember me</b-form-checkbox>
+            <b-button variant="primary" @click="loginFunction">Log In</b-button>
+<!--            mr-sm-2 mb-sm-0-->
 
-        <b-button variant="primary" @click="loginFunction">Log In</b-button>
-      </b-form>
-    </div>
+          </b-form>
+    </b-container>
   </div>
 </template>
 
@@ -60,15 +63,9 @@ export default {
       Parse.User.logIn(this.username, this.pass).then( (responseData)=>{
         console.log("Response data is: ", responseData);
 
-        this.$toast("Logged in!, ", {
+        this.$toast("Logged in.", {
           position: "top-right",
           timeout: 2500,
-          closeOnClick: true,
-          pauseOnFocusLoss: true,
-          pauseOnHover: true,
-          draggable: true,
-          closeButton: "button",
-          icon: true,
         });
 
         this.$router.push({name: 'home'});
@@ -83,7 +80,3 @@ export default {
   }
 }
 </script>
-
-<style>
-
-</style>
