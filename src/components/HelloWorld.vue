@@ -3,6 +3,7 @@
     <div class="row justify-content-evenly">
       <h1>All of your tasks</h1>
 
+      <!--BUTTONS-->
       <b-row class="mb-3 border-bottom pb-3">
         <b-col>
           <div class="d-flex justify-content-between">
@@ -12,6 +13,8 @@
           </div>
         </b-col>
       </b-row>
+      <!--END OF BUTTONS-->
+
       <!--TASKS-->
       <b-row>
         <!-- OPEN TASKS -->
@@ -82,8 +85,11 @@
           </b-list-group>
         </b-col>
       </b-row>
+      <!--END OF TASKS-->
+
     </div>
-    <!--      START OF MODAL EDIT-CREATE TASK-->
+
+    <!--START OF MODAL EDIT-CREATE TASK-->
     <b-modal
         centered
         hide-header
@@ -100,26 +106,27 @@
       <b-form-group label="Content" class="mb-3">
         <b-form-input v-model="editObjectContent" placeholder="Task content goes here"></b-form-input>
       </b-form-group>
+<!--.originalTodo.attachment-->
 
-      <b-form-group>
-<!--        <div v-if="this.editObjectAttachment.attachment">-->
-        <div v-if="editObjectAttachment">
-
+<!--      ATTACHMENT MANAGEMENT IN MODAL-->
+      <b-form-group label="Attachment" v-if="this.originalTodo && this.originalTodo.attributes && this.originalTodo.attributes.attachment">
 <!--          MAKE FILE MANAGEMENT HERE-->
-          <b-link>
-            <b-icon-trash class="pl-1 pr-2"></b-icon-trash>
-          </b-link>
-          <b-link>
-            <b-icon-pencil-square class=""></b-icon-pencil-square>
-          </b-link>
-
-        </div>
-       <div v-else>
-         <label for="formFileSm" class="form-label">input file here</label>
-         <input class="form-control form-control-sm" id="formFileSm" type="file" ref="file" @change="readFile()">
-       </div>
-<!--          -------->
+        <b-link :href="this.originalTodo.attributes.attachment._url">
+          {{this.originalTodo.attributes.attachment._name}}
+        </b-link>
+        <b-link>
+        <!--insert an @click here VVVV to delete the attachemnt of object-->
+          <b-icon-x-lg class="pl-1 pr-2" variant="danger" @click="openDeleteAttachmentModal(originalTodo)"></b-icon-x-lg>
+        </b-link>
       </b-form-group>
+
+      <b-form-group v-else label="input file here">
+        <!--insert a v model here and make it work VVVV-->
+        <b-form-file v-model="newAttachment" class="" id="profilePhotoFileUpload">
+
+        </b-form-file>
+      </b-form-group>
+
 
       <b-form-group>
         <b-form-checkbox v-model="editObjectStatus">
@@ -127,8 +134,9 @@
         </b-form-checkbox>
       </b-form-group>
     </b-modal>
-    <!--      END OF MODAL EDIT-CREATE TASK       -->
-    <!--      START OF MODAL DELETE TASK          -->
+    <!--END OF MODAL EDIT-CREATE TASK-->
+
+    <!--START OF MODAL DELETE TASK-->
     <b-modal
         centered
         hide-header
@@ -141,7 +149,23 @@
     >
       <h4>Are you sure you want to delete this task?</h4>
     </b-modal>
-    <!--      END OF MODAL DELETE TASK            -->
+    <!--END OF MODAL DELETE TASK-->
+
+    <!--START OF MODAL DELETE ATTACHMENT-->
+    <b-modal
+        centered
+        hide-header
+        id="delete-attachment-modal"
+        :ok-title="`Delete`"
+        :ok-variant="'danger'"
+        @ok="deleteAttachment()"
+        size="sm"
+        :cancel-variant="'success'"
+    >
+      <h4>Are you sure you want to delete the attachment?</h4>
+    </b-modal>
+    <!--END OF MODAL DELETE ATTACHMENT-->
+
   </b-container>
 
 </template>
@@ -159,15 +183,19 @@ export default {
       uncompleted: [],
       items: [],
       itemToDelete: null,
+      attachmentToDelete: null,
+
       editObjectName: '',
       editObjectContent: '',
       editObjectStatus: false,
+      attachment: null,
+      newAttachment: null,
+      originalTodo: {},
 
-      editObjectAttachment: null,
+      constructedItem: {},
+      isAttachmentSaved: false,
 
       modalSuccessButtonText: '',
-
-      file: null,
     }
   },
 
@@ -210,8 +238,14 @@ export default {
 
             id: todo.id,
             originalTodo: todo
-          }//figure out how to get file info from object and DO THE INTERFACE AT LEAST... <3
+          }
+
         });
+        for(let i = this.items.count; i > 0; --i) {
+          console.log(this.item[i].dueDate)
+        }
+
+
         this.completed = this.items.filter((oneToDo) => oneToDo.status);
         this.uncompleted = this.items.filter((oneToDo) => !oneToDo.status);
       });
@@ -239,32 +273,82 @@ export default {
       this.editObjectContent = item.content;
       this.editObjectStatus = item.status;
       this.editObjectId = item.originalTodo.id;
-      this.editObjectAttachment = item.originalTodo.attachment;
+      this.originalTodo = item.originalTodo;
+
 
       this.$bvModal.show('edit-create-modal');
       this.modalSuccessButtonText = "Edit Task"
     },
-    openDeleteModal(original) {
-      this.itemToDelete = original
+    openDeleteModal(item) {
+      this.itemToDelete = item
       this.$bvModal.show("delete-todo-modal");
+    },
+    deleteToDoPermanently() {
+      this.itemToDelete.destroy().then(() => {
+        this.fetchToDos();
+        this.$toast("Task deleted successfully.", {
+          position: "top-right",
+          timeout: 2500,
+        });
+      }).catch((error) => {
+        this.$toast.error("Error while deleting task", {
+          position: "top-right",
+          timeout: 2500,
+        });
+        console.error("Error while saving task", error);
+      });
+    },
+
+    openDeleteAttachmentModal(attachment){
+      // pass current object through () to know what to delete.
+      this.attachmentToDelete = attachment
+      this.$bvModal.show("delete-attachment-modal");
+    },
+    deleteAttachment(){
+      console.log('"deleting"')
+      let deletion = this.attachmentToDelete.get("attachment");
+
+// what's up with this
+      deletion.destroy({ useMasterKey: true}).then(() => {
+        this.fetchToDos();
+        this.$toast("Attachment deleted successfully.", {
+          position: "top-right",
+          timeout: 2500,
+        });
+        deletion = null;
+
+      }).catch((error) => {
+            this.$toast.error("Error while deleting attachment ", {
+              position: "top-right",
+              timeout: 2500,
+            });
+            console.error("Error while deleting task", error);
+            
+          });
+
+      this.fetchToDos();
+      // "deleting" will be done here
+
     },
 
     saveToDo() {
-
       const ToDo = Parse.Object.extend('ToDo');
       const newTask = new ToDo();
 
       if (this.editObjectId) {
-        newTask.set("id", this.editObjectId); //WHAT IS DIS
+        newTask.set("id", this.editObjectId);
       }
 
-      // constructedItem.originalTodo.attributes.attachment
       let userPointer = {"__type": "Pointer", className: '_User', objectId: this.curUserId,}
+      newTask.set("owner", userPointer);
       newTask.set("name", this.editObjectName);
       newTask.set("content", this.editObjectContent);
       newTask.set("status", this.editObjectStatus);
-      // newTask.set("attachment", )
-      newTask.set("owner", userPointer);
+
+      if(this.newAttachment) {
+        let parseFile = new Parse.File('todoFile', this.newAttachment);
+        newTask.set("attachment", parseFile);
+      }
 
       newTask.save().then(
           (response) => {
@@ -272,7 +356,8 @@ export default {
             this.editObjectName = '';
             this.editObjectContent = '';
             this.editObjectStatus = false;
-            this.editObjectId = null; //!!!
+            this.editObjectId = null;
+            this.newAttachment = null;
 
             this.fetchToDos();
             this.$bvModal.hide('edit-create-modal');
@@ -295,17 +380,8 @@ export default {
       this.editObjectStatus = false;
       this.editObjectId = null; //!!!
 
-      // this.
-    },
+      this.originalTodo = {};
 
-    deleteToDoPermanently() {
-      this.itemToDelete.destroy().then(() => {
-        this.fetchToDos();
-        this.$toast("Task deleted successfully.", {
-          position: "top-right",
-          timeout: 2500,
-        });
-      });
     },
 
     logOutFunction() {
