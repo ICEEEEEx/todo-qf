@@ -5,13 +5,18 @@
 
       <!--BUTTONS-->
       <b-row class="mb-3 border-bottom pb-3">
-        <b-col>
           <div class="d-flex justify-content-between">
-            <b-button variant="outline-success" @click="openCreateModal">Create a new ToDo</b-button>
 
-            <b-button variant="outline-danger" @click="logOutFunction">Log Out</b-button>
+              <b-col>
+                <b-button variant="outline-success" @click="openCreateModal">Create a new ToDo</b-button>
+              </b-col>
+              <b-col>
+                <b-button variant="outline-success" @click="$router.push({name: 'TablePage'});">table page</b-button>
+              </b-col>
+              <b-col>
+                <b-button variant="outline-danger" @click="logOutFunction">Log Out</b-button>
+              </b-col>
           </div>
-        </b-col>
       </b-row>
       <!--END OF BUTTONS-->
 
@@ -85,6 +90,16 @@
           </b-list-group>
         </b-col>
       </b-row>
+
+      <b-row>
+        <div class="d-flex justify-content-end">
+            <b-dropdown :text="filterBtnText" class="mt-3">
+              <b-dropdown-item @click="filterByDueDateASC()">DueDate ↓</b-dropdown-item>
+              <b-dropdown-item @click="filterByCreatedAtDSC()">CreatedAt ↓</b-dropdown-item>
+              <b-dropdown-item @click="filterByAttachment()">Attachment ↓</b-dropdown-item>
+            </b-dropdown>
+        </div>
+      </b-row>
       <!--END OF TASKS-->
 
     </div>
@@ -106,25 +121,24 @@
       <b-form-group label="Content" class="mb-3">
         <b-form-input v-model="editObjectContent" placeholder="Task content goes here"></b-form-input>
       </b-form-group>
-<!--.originalTodo.attachment-->
 
-<!--      ATTACHMENT MANAGEMENT IN MODAL-->
+<!--      DATE-->
+      <b-form-group label="Due Date" class="mb-3">
+        <b-form-datepicker v-model="editObjectDueDate" class="mb-2" value-as-date></b-form-datepicker>
+      </b-form-group>
+
+      <!--ATTACHMENT MANAGEMENT IN MODAL-->
       <b-form-group label="Attachment" v-if="this.originalTodo && this.originalTodo.attributes && this.originalTodo.attributes.attachment">
-<!--          MAKE FILE MANAGEMENT HERE-->
         <b-link :href="this.originalTodo.attributes.attachment._url">
           {{this.originalTodo.attributes.attachment._name}}
         </b-link>
         <b-link>
-        <!--insert an @click here VVVV to delete the attachemnt of object-->
           <b-icon-x-lg class="pl-1 pr-2" variant="danger" @click="openDeleteAttachmentModal(originalTodo)"></b-icon-x-lg>
         </b-link>
       </b-form-group>
 
       <b-form-group v-else label="input file here">
-        <!--insert a v model here and make it work VVVV-->
-        <b-form-file v-model="newAttachment" class="" id="profilePhotoFileUpload">
-
-        </b-form-file>
+        <b-form-file v-model="newAttachment" class="" id="profilePhotoFileUpload"></b-form-file>
       </b-form-group>
 
 
@@ -187,7 +201,9 @@ export default {
 
       editObjectName: '',
       editObjectContent: '',
+      editObjectDueDate: null,
       editObjectStatus: false,
+
       attachment: null,
       newAttachment: null,
       originalTodo: {},
@@ -196,6 +212,8 @@ export default {
       isAttachmentSaved: false,
 
       modalSuccessButtonText: '',
+
+      filterBtnText: 'filter',
     }
   },
 
@@ -210,6 +228,33 @@ export default {
     }
   },
   methods: {
+
+    filterByDueDateASC(){
+      this.filterBtnText = "DueDate ↓"
+      this.fetchToDos()
+    },
+    filterByCreatedAtDSC(){
+      this.filterBtnText = "CreatedAt ↓"
+      this.fetchToDos()
+    },
+    filterByAttachment(){
+      this.filterBtnText = "Attachment ↓"
+      this.fetchToDos()
+    },
+
+    filterChecker(toDoQuery) {
+      // let x = toDoQuery;
+
+      if (this.filterBtnText === 'DueDate ↓'){
+        return toDoQuery.ascending('dueDate');
+      } else if(this.filterBtnText === "filter" || this.filterBtnText === "CreatedAt ↓"){
+        return toDoQuery.descending('createdAt');
+      } else if(this.filterBtnText === "Attachment ↓"){
+        return toDoQuery.descending('attachment')
+      }
+      // ....
+    },
+
     isUserLoggedIn() {
       let curUser = Parse.User.current();
       if (curUser && curUser.id) {
@@ -223,11 +268,13 @@ export default {
       let toDoQuery = new Parse.Query('ToDo');
       let userPointer = {"__type": "Pointer", className: '_User', objectId: this.curUserId,}
 
+      this.filterChecker(toDoQuery)
+
+      // toDoQuery.ascending('dueDate');
       toDoQuery.equalTo('owner', userPointer);
-      toDoQuery.descending('createdAt');
 
       toDoQuery.find().then((data) => {
-        console.log("My todos", data);
+        // console.log("My todos", data);
         this.items = data.map((todo) => {
           return {
             status: todo.get('status'),
@@ -239,15 +286,11 @@ export default {
             id: todo.id,
             originalTodo: todo
           }
-
         });
-        for(let i = this.items.count; i > 0; --i) {
-          console.log(this.item[i].dueDate)
-        }
-
 
         this.completed = this.items.filter((oneToDo) => oneToDo.status);
         this.uncompleted = this.items.filter((oneToDo) => !oneToDo.status);
+
       });
     },
 
@@ -271,6 +314,7 @@ export default {
     openEditModal(item) {
       this.editObjectName = item.name;
       this.editObjectContent = item.content;
+      this.editObjectDueDate = item.dueDate;
       this.editObjectStatus = item.status;
       this.editObjectId = item.originalTodo.id;
       this.originalTodo = item.originalTodo;
@@ -347,7 +391,11 @@ export default {
       newTask.set("owner", userPointer);
       newTask.set("name", this.editObjectName);
       newTask.set("content", this.editObjectContent);
+      newTask.set("dueDate", this.editObjectDueDate)
       newTask.set("status", this.editObjectStatus);
+
+      // console.log(this.editObjectDueDate.toUTCString())
+
 
       if(this.newAttachment) {
         let parseFile = new Parse.File('todoFile', this.newAttachment);
@@ -360,8 +408,10 @@ export default {
             this.editObjectName = '';
             this.editObjectContent = '';
             this.editObjectStatus = false;
+            this.editObjectDueDate = null;
             this.editObjectId = null;
             this.newAttachment = null;
+
 
             this.fetchToDos();
             this.$bvModal.hide('edit-create-modal');
@@ -381,6 +431,7 @@ export default {
     clearToDoInfo(){
       this.editObjectName = '';
       this.editObjectContent = '';
+      this.editObjectDueDate = null;
       this.editObjectStatus = false;
       this.editObjectId = null; //!!!
 

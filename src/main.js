@@ -37,3 +37,7 @@ new Vue({
   router,
   render: h => h(App),
 }).$mount('#app')
+
+//
+var moment = require('moment'); // require
+moment().format();
