@@ -299,23 +299,27 @@ export default {
       });
     },
 
-    openDeleteAttachmentModal(attachment){
+    openDeleteAttachmentModal(attachmentObj){
       // pass current object through () to know what to delete.
-      this.attachmentToDelete = attachment
+      this.attachmentToDelete = attachmentObj
       this.$bvModal.show("delete-attachment-modal");
+      console.log(this.attachmentToDelete)
     },
     deleteAttachment(){
       console.log('"deleting"')
-      let deletion = this.attachmentToDelete.get("attachment");
+      let deletion = this.attachmentToDelete;
 
 // what's up with this
-      deletion.destroy({ useMasterKey: true}).then(() => {
+      deletion.set("attachment", null)
+
+        deletion.save().then(() =>{
         this.fetchToDos();
         this.$toast("Attachment deleted successfully.", {
           position: "top-right",
           timeout: 2500,
         });
         deletion = null;
+        this.attachmentToDelete = null;
 
       }).catch((error) => {
             this.$toast.error("Error while deleting attachment ", {
@@ -323,7 +327,7 @@ export default {
               timeout: 2500,
             });
             console.error("Error while deleting task", error);
-            
+
           });
 
       this.fetchToDos();
