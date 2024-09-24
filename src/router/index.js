@@ -33,7 +33,13 @@ const routes = [
         name: 'login',
         component: () => import('@/components/Login.vue'),
     },
+    {
+        path: '/table',
+        name: 'TablePage',
+        component: () => import('@/components/TablePage.vue'),
+    },
 ];
+
 
 const router = new Router({
     mode: 'history',
