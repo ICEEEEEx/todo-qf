@@ -186,6 +186,8 @@
 
 <script>
 import Parse from "parse";
+import moment from 'moment';
+moment().format();
 
 export default {
   name: 'HelloWorld',
@@ -201,14 +203,14 @@ export default {
 
       editObjectName: '',
       editObjectContent: '',
-      editObjectDueDate: null,
       editObjectStatus: false,
+      editObjectDueDate: null,
+      newAttachment: null,
+
 
       attachment: null,
-      newAttachment: null,
       originalTodo: {},
 
-      constructedItem: {},
       isAttachmentSaved: false,
 
       modalSuccessButtonText: '',
@@ -405,13 +407,13 @@ export default {
       newTask.save().then(
           (response) => {
             console.log("Task saved successfully!", response);
-            this.editObjectName = '';
-            this.editObjectContent = '';
-            this.editObjectStatus = false;
-            this.editObjectDueDate = null;
-            this.editObjectId = null;
-            this.newAttachment = null;
-
+            // this.editObjectName = '';
+            // this.editObjectContent = '';
+            // this.editObjectStatus = false;
+            // this.editObjectDueDate = null;
+            // this.editObjectId = null;
+            // this.newAttachment = null;
+            this.clearToDoInfo()
 
             this.fetchToDos();
             this.$bvModal.hide('edit-create-modal');
@@ -434,6 +436,7 @@ export default {
       this.editObjectDueDate = null;
       this.editObjectStatus = false;
       this.editObjectId = null; //!!!
+      this.newAttachment = null;
 
       this.originalTodo = {};
 
