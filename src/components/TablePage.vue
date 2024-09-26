@@ -18,8 +18,6 @@
         </div>
       </b-row>
 
-
-
       <template>
         <div>
           <b-table
@@ -34,7 +32,7 @@
                     v-model="data.item.status"
                     :value="1"
                     @change="updateToDoStatus(data.item)"
-
+                    role="button"
                 >
                 </b-form-checkbox>
               </div>
@@ -45,34 +43,25 @@
                 <span class="text-muted">{{data.item.name}}</span>
               </div>
             </template>
+
             <template #cell(dueDate)="data">
               <div class="">
                 <span>{{data.item.dueDate | niceDate}}</span>
               </div>
             </template>
 
-
-
             <template #cell(attachment)="data">
               <div v-if="data.item.attachment">
-<!--                <span class="text-muted">{{data.attachment.name()}}</span>-->
                 <b-link :href="data.item.attachment.url()">
-<!--                  {{ data.attachment ? data.attachment.name() | splitAtUnderscore : null}}-->
-<!--                  {{ data.item.attachment}}-->
                   {{ data.item.attachment.name() | splitAtUnderscore}}
-
                 </b-link>
               </div>
             </template>
 
             <template #cell(actions)="data">
-              <b-icon-pencil class="cursor-pointer" @click="openEditModal(data.item)"></b-icon-pencil>
-              <b-icon-trash class="cursosr-poitner pl-1 pr-2" @click="openDeleteModal(data.item.originalTodo)"> </b-icon-trash>
+              <b-icon-pencil role="button" class="" @click="openEditModal(data.item)"></b-icon-pencil>
+              <b-icon-trash role="button" class="pl-1 pr-2" @click="openDeleteModal(data.item.originalTodo)"> </b-icon-trash>
             </template>
-
-
-
-
 
           </b-table>
         </div>
@@ -85,18 +74,6 @@
     <b-modal
         centered
         hide-header
-        id="delete-attachment-modal"
-        :ok-title="`Delete`"
-        :ok-variant="'danger'"
-        @ok="deleteAttachment()"
-        size="sm"
-        :cancel-variant="'success'"
-    >
-      <h4>Are you sure you want to delete the attachment?</h4>
-    </b-modal>
-    <b-modal
-        centered
-        hide-header
         id="delete-todo-modal"
         :ok-title="`Delete`"
         :ok-variant="'danger'"
@@ -106,7 +83,6 @@
     >
       <h4>Are you sure you want to delete this task?</h4>
     </b-modal>
-
 
   </b-container>
 </template>
@@ -127,15 +103,7 @@ export default {
 
   data() {
     return{
-      modalSuccessButtonText: '',
-
       itemToEdit: null,
-
-      editObjectName: '',
-      editObjectContent: '',
-      editObjectStatus: false,
-      editObjectDueDate: null,
-
       originalTodo: {},
 
       items: [],
@@ -220,7 +188,6 @@ export default {
             id: todo.id,
             originalTodo: todo
           }
-          // fields: ['name', 'content', 'dueDate', 'status', 'attachment'],
         });
 
       });
@@ -239,32 +206,27 @@ export default {
 
     openCreateModal(){
       this.clearToDoInfo()
-
+      this.itemToEdit = {};
       this.$bvModal.show("edit-create-modal")
-      this.modalSuccessButtonText = "Create Task"
     },
-
     openEditModal(item) {
       this.itemToEdit = item;
-
       this.$bvModal.show('edit-create-modal');
-      this.modalSuccessButtonText = "Edit Task"
     },
-
     handleSaved(){
       this.fetchToDos()
 
     },
+
+
     clearToDoInfo(){
       this.editObjectName = '';
       this.editObjectContent = '';
       this.editObjectDueDate = null;
       this.editObjectStatus = false;
       this.editObjectId = null; //!!!
-
       this.originalTodo = {};
     },
-
 
     openDeleteModal(item) {
       this.itemToDelete = item
@@ -285,6 +247,7 @@ export default {
         console.error("Error while saving task", error);
       });
     },
+
 
       logOutFunction() {
       Parse.User.logOut().then(() => {
