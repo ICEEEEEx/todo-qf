@@ -11,6 +11,8 @@ import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
 import '@/styles/custom_styles.css'
+import moment from 'moment';
+
 
 // Make BootstrapVue available throughout your project
 Vue.use(BootstrapVue)
@@ -28,6 +30,19 @@ Vue.use(Toast, {
   newestOnTop: true
 });
 
+Vue.filter('splitAtUnderscore', function (fileName) {
+  const parts = fileName.split('_');
+
+  // If there's more than one part, return everything after the first underscore
+  // Otherwise, return the original filename
+  return parts.length > 1 ? parts.slice(1).join('_') : fileName;
+
+})
+Vue.filter('niceDate', function (date) {
+  return moment(date).format('DD/MM/YYYY');
+})
+
+
 
 const Parse = require('parse');
 Parse.initialize(`${process.env.VUE_APP_PARSE_APP_ID}`, `${process.env.VUE_APP_PARSE_SECRET}`);
@@ -38,6 +53,3 @@ new Vue({
   render: h => h(App),
 }).$mount('#app')
 
-//
-var moment = require('moment'); // require
-moment().format();
