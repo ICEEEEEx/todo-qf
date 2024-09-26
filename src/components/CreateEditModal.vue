@@ -21,17 +21,17 @@
         <b-form-datepicker v-model="localEditObject.dueDate" class="mb-2" value-as-date></b-form-datepicker>
       </b-form-group>
 
-      <b-form-group label="Attachment" v-if="localEditObject.attachment">
+      <b-form-group label="Attachment" v-if="this.originalAttachment">
         <b-link :href="localEditObject.attachment._url">
-          {{ localEditObject.attachment._name | splitAtUnderscore}}
+          {{ localEditObject.attachment.name() | splitAtUnderscore}}
         </b-link>
         <b-link>
-          <b-icon-x-lg class="pl-1 pr-2" variant="danger" @click="openDeleteAttachmentModal(localEditObject)"></b-icon-x-lg>
+          <b-icon-x-lg class="pl-1 pr-2" variant="danger" @click="deleteAttachment(localEditObject)"></b-icon-x-lg>
         </b-link>
       </b-form-group>
 
       <b-form-group v-else label="Upload file here">
-        <b-form-file v-model="localEditObject.attachment" id="attachmentUpload"></b-form-file>
+        <b-form-file v-model="modalFile"></b-form-file>
       </b-form-group>
 
       <b-form-group>
@@ -60,9 +60,12 @@ export default {
         id: null,
         attachment: null,
       },
-
-      attachmentToDelete: {},
       originalTodo: {},
+      attachmentToDelete: {},
+      originalAttachment: null,
+
+      modalFile: null,
+
     };
   },
   computed: {
@@ -84,6 +87,7 @@ export default {
           status: false,
           dueDate: null,
           id: null,
+          attachment: null,
         };
       },
     },
@@ -95,10 +99,16 @@ export default {
       handler(newValue) {
         // Sync the props to the local data
         this.localEditObject = { ...newValue };
-        console.log("Passed object to edit to Modal: ", newValue);
+        this.originalAttachment = this.localEditObject.attachment; // set original attachment (later check if it is set or not)
+        // if (this.originalAttachment === undefined){
+        //   this.originalAttachment = null;
+        // }
+            console.log("Passed object to edit to Modal: ", newValue,);
+            console.log("passed attachment: ", this.originalAttachment)
       },
     },
   },
+
   methods: {
     saveToDo() {
       const ToDo = Parse.Object.extend('ToDo');
@@ -120,26 +130,22 @@ export default {
 
       newTask.set('status', this.localEditObject.status ? true : false);
 
-      if (this.localEditObject.attachment) {
-        let parseFile = new Parse.File('todoFile', this.localEditObject.attachment);
+      if (this.originalAttachment === null || this.originalAttachment === undefined ) {
+        let parseFile = new Parse.File('todoFile', this.modalFile);
         newTask.set('attachment', parseFile);
+
       }
 
-      newTask
-          .save()
-          .then((response) => {
+      newTask.save().then((response) => {
             console.log('Task saved successfully!', response);
             this.clearToDoInfo();
-            // this.fetchToDos();
             this.$bvModal.hide('edit-create-modal');
             this.$toast.success('New task created successfully', {
               position: 'top-right',
               timeout: 2500,
             });
 
-
             this.$emit('saved', newTask);
-
 
           })
           .catch((error) => {
@@ -150,36 +156,43 @@ export default {
             console.error('Error while saving task', error);
           });
     },
-    openDeleteAttachmentModal(attachmentObj){
-      // pass current object through () to know what to delete.
-      this.attachmentToDelete = attachmentObj
-      this.$bvModal.show("delete-attachment-modal");
-      console.log(this.attachmentToDelete)
-    },
-    deleteAttachment(){
-      console.log('"deleting"')
 
-      let deletion = this.attachmentToDelete;
-      deletion.set("attachment", null)
-      deletion.save().then(() => {
-        this.fetchToDos();
-        this.$toast("Attachment deleted successfully.", {
-          position: "top-right",
-          timeout: 2500,
-        });
-        deletion = null;
-        this.attachmentToDelete = null;
+    deleteAttachment(object) {
+      const ToDo = Parse.Object.extend('ToDo');
+      const query = new Parse.Query(ToDo);
 
+      query.get(object.id).then((objDelete) => {
+        let isConfirmed;
 
+        this.$bvModal.msgBoxConfirm("Are you sure you want to delete the attachment?")
+            .then((value) => {
+              isConfirmed = value;
+
+              if (isConfirmed === true) {
+                console.log('"deleting"');
+                objDelete.set('attachment', null); // Set the attachment field to null
+
+                objDelete.save().then(() => {
+                  this.$toast("Attachment deleted successfully.", {
+                    position: "top-right",
+                    timeout: 2500,
+                  });
+                  this.$emit('saved');
+                }).catch((error) => {
+                  this.$toast.error("Error while deleting attachment", {
+                    position: "top-right",
+                    timeout: 2500,
+                  });
+                  console.error("Error while deleting attachment", error);
+                });
+              }
+            });
       }).catch((error) => {
-        this.$toast.error("Error while deleting attachment ", {
-          position: "top-right",
-          timeout: 2500,
-        });
-        console.error("Error while deleting task", error);
-
+        console.error('Error retrieving the task object:', error);
       });
     },
+
+
 
 
     clearToDoInfo() {
@@ -192,6 +205,8 @@ export default {
         attachment: null,
       };
       this.originalTodo = {};
+      this.originalAttachment = null;
+      this.modalFile = null;
     },
 
 
