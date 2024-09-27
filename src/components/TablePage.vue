@@ -1,10 +1,7 @@
 <template>
   <b-container>
-    <div class="row justify-content-evenly">
 
       <b-row class="mb-3 border-bottom pb-3">
-        <div class="d-flex justify-content-between">
-
           <b-col>
             <b-button variant="outline-success" @click="openCreateModal">New Task</b-button>
           </b-col>
@@ -14,13 +11,11 @@
           <b-col>
             <b-button variant="outline-danger" @click="logOutFunction">Log Out</b-button>
           </b-col>
-
-        </div>
       </b-row>
 
-      <template>
-        <div>
-          <b-table
+    <table-filters></table-filters>
+
+     <b-table
               striped hover
               :items="items"
               :fields="fields"
@@ -40,7 +35,9 @@
 
             <template #cell(name)="data">
               <div class="text-left">
-                <span class="text-muted">{{data.item.name}}</span>
+                <span class="text-muted" role="button" @click="openTodoModal(data.item)">{{data.item.name}}
+
+                </span>
               </div>
             </template>
 
@@ -64,13 +61,9 @@
             </template>
 
           </b-table>
-        </div>
-      </template>
 
-    </div>
-
-    <create-edit-modal :edit-object="itemToEdit" :user-id="curUserId" @saved="handleSaved" ></create-edit-modal>
-
+      <todo-modal :todo-info="itemToEdit"/>
+      <create-edit-modal :edit-object="itemToEdit" :user-id="curUserId" @saved="handleSaved" />
     <b-modal
         centered
         hide-header
@@ -91,13 +84,17 @@
 import Parse from "parse";
 import moment from 'moment';
 import CreateEditModal from "@/components/CreateEditModal.vue";
+import todoModal from "@/components/todoModal.vue";
+import TableFilters from "@/components/TableFilters.vue";
 moment().format();
 
 
 export default {
   name: 'TablePage',
   components: {
-    CreateEditModal
+    todoModal,
+    CreateEditModal,
+    TableFilters
   },
 
 
@@ -105,8 +102,6 @@ export default {
     return{
       itemToEdit: null,
       originalTodo: {},
-
-      items: [],
 
       fields: [
         {
@@ -154,49 +149,55 @@ export default {
     curUserId() {
       let curUser = Parse.User.current();
       return curUser ? curUser.id : null;
-    }
-  },
+    },
 
+    items() {
+      return this.$store.state.availableToDos;
+    }
+
+  },
   methods: {
     isUserLoggedIn() {
       let curUser = Parse.User.current();
       if (curUser && curUser.id) {
-        console.log("currently logged in")
-        this.fetchToDos();
+        this.$store.commit('setUserId', curUser.id)
+
+        this.$store.dispatch('fetchToDos', {userId: curUser.id})
+        //this.fetchToDos();
       } else {
         this.$router.push({name: 'login'});
       }
     },
 
-    fetchToDos() {
-      let toDoQuery = new Parse.Query('ToDo');
-      let userPointer = {"__type": "Pointer", className: '_User', objectId: this.curUserId,}
-
-      toDoQuery.equalTo('owner', userPointer);
-      toDoQuery.descending('status');
-
-      toDoQuery.find().then((data) => {
-        console.log("My todos", data);
-        this.items = data.map((todo) => {
-          return {
-            status: todo.get('status') ? 1 : 0,
-            name: todo.get('name'),
-            content: todo.get('content'),
-            dueDate: todo.get('dueDate'),
-            attachment: todo.get('attachment'),
-
-            id: todo.id,
-            originalTodo: todo
-          }
-        });
-
-      });
-    },
+    // fetchToDos() {
+    //   let toDoQuery = new Parse.Query('ToDo');
+    //   let userPointer = {"__type": "Pointer", className: '_User', objectId: this.curUserId,}
+    //
+    //   toDoQuery.equalTo('owner', userPointer);
+    //   toDoQuery.descending('status');
+    //
+    //   toDoQuery.find().then((data) => {
+    //     console.log("My todos", data);
+    //     this.items = data.map((todo) => {
+    //       return {
+    //         status: todo.get('status') ? 1 : 0,
+    //         name: todo.get('name'),
+    //         content: todo.get('content'),
+    //         dueDate: todo.get('dueDate'),
+    //         attachment: todo.get('attachment'),
+    //
+    //         id: todo.id,
+    //         originalTodo: todo
+    //       }
+    //     });
+    //
+    //   });
+    // },
 
     updateToDoStatus(constructedItem) {
       constructedItem.originalTodo.set("status", !!constructedItem.status)
       constructedItem.originalTodo.save().then(() => {
-        this.fetchToDos();
+        this.$store.dispatch("fetchToDos")
         this.$toast("Updated successfully.", {
           position: "top-right",
           timeout: 1500,
@@ -214,7 +215,14 @@ export default {
       this.$bvModal.show('edit-create-modal');
     },
     handleSaved(){
-      this.fetchToDos()
+      this.$store.dispatch("fetchToDos")
+
+    },
+
+    openTodoModal(item){
+      this.itemToEdit = {};
+      this.itemToEdit = item;
+      this.$bvModal.show('todo-info-modal')
 
     },
 
@@ -234,7 +242,7 @@ export default {
     },
     deleteToDoPermanently() {
       this.itemToDelete.destroy().then(() => {
-        this.fetchToDos();
+        this.$store.dispatch("fetchToDos")
         this.$toast("Task deleted successfully.", {
           position: "top-right",
           timeout: 2500,
@@ -260,7 +268,9 @@ export default {
         console.log("The error on logout is: ", error.message);
       })
     }
-  }
+  },
+  watch: {}
+
 }
 
 </script>
