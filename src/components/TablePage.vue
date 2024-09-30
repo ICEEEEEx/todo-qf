@@ -57,7 +57,7 @@
 
             <template #cell(actions)="data">
               <b-icon-pencil role="button" class="" @click="openEditModal(data.item)"></b-icon-pencil>
-              <b-icon-trash role="button" class="pl-1 pr-2" @click="openDeleteModal(data.item.originalTodo)"> </b-icon-trash>
+              <b-icon-trash role="button" class="" @click="openDeleteModal(data.item.originalTodo)"> </b-icon-trash>
             </template>
 
           </b-table>
@@ -142,7 +142,6 @@ export default {
 
   created() {
     this.isUserLoggedIn();
-    // this.fetchToDos()
   },
 
   computed: {
@@ -163,36 +162,10 @@ export default {
         this.$store.commit('setUserId', curUser.id)
 
         this.$store.dispatch('fetchToDos', {userId: curUser.id})
-        //this.fetchToDos();
       } else {
         this.$router.push({name: 'login'});
       }
     },
-
-    // fetchToDos() {
-    //   let toDoQuery = new Parse.Query('ToDo');
-    //   let userPointer = {"__type": "Pointer", className: '_User', objectId: this.curUserId,}
-    //
-    //   toDoQuery.equalTo('owner', userPointer);
-    //   toDoQuery.descending('status');
-    //
-    //   toDoQuery.find().then((data) => {
-    //     console.log("My todos", data);
-    //     this.items = data.map((todo) => {
-    //       return {
-    //         status: todo.get('status') ? 1 : 0,
-    //         name: todo.get('name'),
-    //         content: todo.get('content'),
-    //         dueDate: todo.get('dueDate'),
-    //         attachment: todo.get('attachment'),
-    //
-    //         id: todo.id,
-    //         originalTodo: todo
-    //       }
-    //     });
-    //
-    //   });
-    // },
 
     updateToDoStatus(constructedItem) {
       constructedItem.originalTodo.set("status", !!constructedItem.status)
@@ -232,7 +205,7 @@ export default {
       this.editObjectContent = '';
       this.editObjectDueDate = null;
       this.editObjectStatus = false;
-      this.editObjectId = null; //!!!
+      this.editObjectId = null;
       this.originalTodo = {};
     },
 
@@ -255,7 +228,6 @@ export default {
         console.error("Error while saving task", error);
       });
     },
-
 
       logOutFunction() {
       Parse.User.logOut().then(() => {
