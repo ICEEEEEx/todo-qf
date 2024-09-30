@@ -40,7 +40,7 @@ Vue.filter('splitAtUnderscore', function (fileName) {
 
 })
 Vue.filter('niceDate', function (date) {
-  return moment(date).format('DD/MM/YYYY');
+  return moment(date).format('YYYY/MM/DD');
 })
 
 
