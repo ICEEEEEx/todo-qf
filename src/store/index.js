@@ -6,7 +6,6 @@ Vue.use(Vuex);
 
 export default new Vuex.Store({
 	state: {
-
 		curUserId: null,
 
 		filters: {
@@ -43,7 +42,7 @@ export default new Vuex.Store({
 			state.filters.setStatusOnly = newValue;
 		},
 		setFilterDueDate(state, newValue){
-			state.filters.setDueDateOnly = newValue;
+			state.filters.setDueDateOnly = newValue || undefined;
 		},
 
 
@@ -68,28 +67,19 @@ export default new Vuex.Store({
 			toDoQuery.equalTo('owner', userPointer);
 
 
-
-
 			if(context.getters['filterAttach']){
-				// toDoQuery.notEqual('attachment', null);
+				toDoQuery.notEqualTo('attachment', null);
 				toDoQuery.exists('attachment');
 			}
 
 			if(context.getters['filterStatus'] === true || context.getters['filterStatus'] === false){
-				// console.log(context.getters['filterStatus'])
 				toDoQuery.equalTo('status', context.getters['filterStatus']);
-			} else{
-				toDoQuery.equalTo('owner', userPointer);
 			}
 
-			if(context.getters['filterDate']){
-				// toDoQuery.notEqual('attachment', null);
-				toDoQuery.equalTo('dueDate', context.getters['filterDate']);
+			if (context.getters['filterDate']) {
+				const selectedDate = new Date(context.getters['filterDate']);
+				toDoQuery.greaterThanOrEqualTo('dueDate', selectedDate);
 			}
-
-
-
-			// toDoQuery.descending('status');
 
 			toDoQuery.find().then((data) => {
 				console.log("My todos", data);
