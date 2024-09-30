@@ -5,7 +5,6 @@
         id="todo-info-modal"
         hide-footer
         hide-header
-
     >
       <div class="card text-left">
         <div class="card-header">
@@ -17,7 +16,6 @@
             <b-icon-check-lg v-if="this.localTodoObject.status === 1" variant="success"></b-icon-check-lg>
             <b-icon-x-lg v-else variant="danger"></b-icon-x-lg>
           </h5>
-
           <p class="card-text">{{this.localTodoObject.content}}</p>
           <a v-if="todoInfo.attachment" :href="todoInfo.attachment.url()" class="btn btn-primary">{{ todoInfo.attachment.name() | splitAtUnderscore }}</a>
         </div>
@@ -32,15 +30,7 @@
 
         </div>
       </div>
-
-<!--      MAKE DATA LOCAL!!!! (done) -->
-<!--      MAKE IT LOOK NICER!!! (kinda done)-->
-
-
-<!--      ASK WHY DO I HAVE TO DOUBLE CLICK THE OBJECT FIRST TIME CLICKING!!!!!-->
-
     </b-modal>
-
   </div>
 </template>
 
@@ -77,24 +67,20 @@
       }
     },
     mounted() {
-
-
     },
+
     watch: {
       todoInfo: {
         immediate: true,
         deep: true,
         handler(newValue) {
-          // Sync the props to the local data
           this.localTodoObject = {...newValue};
           console.log("Passed object to todo Modal: ", newValue,);
-
         }
       }
 
     },
     methods: {
-
     }
   };
 </script>
