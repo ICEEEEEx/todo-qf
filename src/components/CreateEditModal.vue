@@ -25,9 +25,8 @@
         <b-link :href="localEditObject.attachment._url">
           {{ localEditObject.attachment.name() | splitAtUnderscore}}
         </b-link>
-        <b-link>
-          <b-icon-x-lg class="pl-1 pr-2" variant="danger" @click="deleteAttachment(localEditObject)"></b-icon-x-lg>
-        </b-link>
+        <b-icon-x-lg role="button" class="pl-1 pr-2" variant="danger" @click="deleteAttachment(localEditObject)"></b-icon-x-lg>
+
       </b-form-group>
 
       <b-form-group v-else label="Upload file here">
@@ -97,12 +96,8 @@ export default {
       immediate: true,
       deep: true,
       handler(newValue) {
-        // Sync the props to the local data
         this.localEditObject = { ...newValue };
-        this.originalAttachment = this.localEditObject.attachment; // set original attachment (later check if it is set or not)
-        // if (this.originalAttachment === undefined){
-        //   this.originalAttachment = null;
-        // }
+        this.originalAttachment = this.localEditObject.attachment;
             console.log("Passed object to edit to Modal: ", newValue,);
             console.log("passed attachment: ", this.originalAttachment)
       },
@@ -170,7 +165,7 @@ export default {
 
               if (isConfirmed === true) {
                 console.log('"deleting"');
-                objDelete.set('attachment', null); // Set the attachment field to null
+                objDelete.set('attachment', null);
 
                 objDelete.save().then(() => {
                   this.$toast("Attachment deleted successfully.", {
@@ -192,9 +187,6 @@ export default {
       });
     },
 
-
-
-
     clearToDoInfo() {
       this.localEditObject = {
         name: '',
@@ -208,8 +200,6 @@ export default {
       this.originalAttachment = null;
       this.modalFile = null;
     },
-
-
   },
 };
 </script>
