@@ -6,7 +6,7 @@
             <b-form-select
                 class=""
                 v-model="filterStatus"
-                :options="[{value: undefined, text: '-'},{value: true, text: 'Finished'}, {value: false, text: 'Unfinished'}]"
+                :options="[{value: undefined, text: 'Show all'},{value: true, text: 'Finished'}, {value: false, text: 'Unfinished'}]"
             >
             </b-form-select>
           </b-form-group>
@@ -15,6 +15,8 @@
         <b-col cols="4">
           <b-form-group label="Deadline after">
             <b-form-datepicker
+                value-as-date
+                reset-button
                 v-model="filterDateAfter"
             ></b-form-datepicker>
           </b-form-group>
@@ -46,7 +48,6 @@ export default {
       filterAttachments: false,
       filterStatus: null,
       filterDateAfter: undefined,
-
     }
   },
   computed: {
@@ -64,16 +65,11 @@ export default {
       this.$store.commit('setFilterStatus', newValue);
       this.$store.dispatch("fetchToDos");
     },
-    filterDueDate(newValue){
+    filterDateAfter(newValue){
       this.$store.commit('setFilterDueDate', newValue);
       this.$store.dispatch('fetchToDos');
     }
   }
 
 }
-
 </script>
-
-<style scoped>
-
-</style>
